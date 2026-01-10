@@ -1,0 +1,282 @@
+'use client';
+
+import { useState, useRef, useEffect, KeyboardEvent } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, Send, Bot, Circle, Sparkles, History, Menu } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import { AuroraCard } from '../ui/aurora/AuroraCard';
+import { mockChatService } from '@/lib/ai/mock-chat-service';
+import { useTaskStore } from '@/store/useTaskStore';
+import { ChatMessage } from '@/types';
+
+interface ChatWindowProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const ChatWindow = ({ isOpen, onClose }: ChatWindowProps) => {
+  const [inputValue, setInputValue] = useState('');
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const { tasks, user, stats } = useTaskStore();
+
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+
+    if (!inputValue.trim() || isLoading) return;
+
+    // Add user message
+    const userMessage: ChatMessage = {
+      id: `msg-${Date.now()}-user`,
+      content: inputValue,
+      sender: 'user',
+      timestamp: new Date(),
+      status: 'pending'
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setInputValue('');
+
+    setIsLoading(true);
+
+    try {
+      // Prepare context with user's tasks and stats
+      const context = {
+        tasks: tasks.map(task => ({
+          id: task.id,
+          title: task.title,
+          description: task.description,
+          status: task.status,
+          priority: task.priority,
+          dueDate: task.dueDate
+        })),
+        stats: {
+          tasksDueSoon: stats.tasksDueSoon,
+          completedToday: stats.completedToday,
+          productivityScore: stats.productivityScore,
+          totalTasks: stats.totalTasks,
+          completedTasks: stats.completedTasks
+        }
+      };
+
+      // Get AI response
+      const response = await mockChatService.sendMessage({
+        message: inputValue,
+        context
+      });
+
+      // Add AI response
+      const aiMessage: ChatMessage = {
+        id: response.id,
+        content: response.content,
+        sender: 'ai',
+        timestamp: response.timestamp,
+        status: 'sent'
+      };
+
+      setMessages(prev => [...prev, aiMessage]);
+    } catch (error) {
+      console.error('Error getting AI response:', error);
+
+      // Add error message
+      const errorMessage: ChatMessage = {
+        id: `msg-${Date.now()}-error`,
+        content: 'Sorry, I encountered an issue. Please try again.',
+        sender: 'ai',
+        timestamp: new Date(),
+        status: 'error'
+      };
+
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit();
+    }
+  };
+
+  // Auto-resize textarea based on content
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 150)}px`;
+    }
+  }, [inputValue]);
+
+  // Mock history data
+  const mockHistory = [
+    { id: 'hist-1', title: 'Project planning discussion', date: '2026-01-08' },
+    { id: 'hist-2', title: 'Task prioritization help', date: '2026-01-07' },
+    { id: 'hist-3', title: 'Deadline clarification', date: '2026-01-06' },
+  ];
+
+  return (
+    <AuroraCard className="w-full max-w-md md:w-[400px] h-[600px] flex flex-col bg-[#020204]/90 backdrop-blur-xl border border-white/[0.15] shadow-2xl overflow-hidden">
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 border-b border-white/[0.1]">
+        <div className="flex items-center space-x-2">
+          <div className="relative">
+            <Bot className="text-indigo-400" size={20} />
+            <Sparkles className="absolute -top-1 -right-1 text-purple-400" size={12} />
+          </div>
+          <h2 className="font-semibold text-white">Aurora AI</h2>
+          <div className="flex items-center text-xs text-green-400">
+            <Circle className="fill-current mr-1" size={8} />
+            Online
+          </div>
+        </div>
+        <div className="flex space-x-2">
+          <button
+            onClick={() => setShowHistory(!showHistory)}
+            className="text-gray-400 hover:text-white transition-colors p-1 rounded-full hover:bg-white/[0.1]"
+            aria-label="Toggle history"
+          >
+            <History size={20} />
+          </button>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-white transition-colors p-1 rounded-full hover:bg-white/[0.1]"
+            aria-label="Close chat"
+          >
+            <X size={20} />
+          </button>
+        </div>
+      </div>
+
+      {/* Main Content Area */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* History Sidebar */}
+        <AnimatePresence>
+          {showHistory && (
+            <motion.div
+              initial={{ width: 0, opacity: 0 }}
+              animate={{ width: 240, opacity: 1 }}
+              exit={{ width: 0, opacity: 0 }}
+              transition={{ duration: 0.3, ease: 'easeInOut' }}
+              className="flex flex-col border-r border-white/[0.1] bg-[#020204]/70 min-w-[240px] w-60"
+            >
+              <div className="p-4 border-b border-white/[0.1]">
+                <h3 className="font-medium text-white flex items-center">
+                  <History className="mr-2" size={16} />
+                  Chat History
+                </h3>
+              </div>
+              <div className="flex-1 overflow-y-auto p-2">
+                {mockHistory.map((item) => (
+                  <div
+                    key={item.id}
+                    className="p-3 rounded-lg hover:bg-white/[0.05] cursor-pointer transition-colors mb-2"
+                  >
+                    <div className="text-sm font-medium text-white truncate">{item.title}</div>
+                    <div className="text-xs text-gray-400">{item.date}</div>
+                  </div>
+                ))}
+                {mockHistory.length === 0 && (
+                  <div className="text-center text-gray-500 text-sm p-4">
+                    No chat history yet
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Chat Area */}
+        <div className={`flex-1 flex flex-col ${showHistory ? 'ml-0' : ''}`}>
+          {/* Messages */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <AnimatePresence>
+              {messages.map((message) => (
+                <motion.div
+                  key={message.id}
+                  initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                  transition={{ duration: 0.3 }}
+                  className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div
+                    className={`max-w-[80%] rounded-2xl px-4 py-3 ${
+                      message.sender === 'user'
+                        ? 'bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-br-none'
+                        : 'bg-white/[0.05] text-white rounded-bl-none border border-white/[0.1]'
+                    }`}
+                  >
+                    {message.sender === 'ai' ? (
+                      <ReactMarkdown className="prose prose-invert max-w-none">
+                        {message.content}
+                      </ReactMarkdown>
+                    ) : (
+                      message.content
+                    )}
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+
+            {isLoading && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex justify-start"
+              >
+                <div className="bg-white/[0.05] text-white rounded-2xl rounded-bl-none px-4 py-3 border border-white/[0.1]">
+                  <div className="flex space-x-2">
+                    <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Input Area */}
+          <div className="p-4 border-t border-white/[0.1]">
+            <form onSubmit={handleSubmit} className="flex space-x-2">
+              <textarea
+                ref={textareaRef}
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Message Aurora AI..."
+                className="flex-1 bg-white/[0.05] border border-white/[0.1] rounded-xl px-4 py-3 text-white placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                rows={1}
+                style={{ minHeight: '44px', maxHeight: '150px' }}
+              />
+              <button
+                type="submit"
+                disabled={!inputValue.trim() || isLoading}
+                className="self-end bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl p-3 hover:opacity-90 disabled:opacity-50 transition-opacity focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                aria-label="Send message"
+              >
+                <Send size={18} />
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </AuroraCard>
+  );
+};
+
+export { ChatWindow };

@@ -1,0 +1,51 @@
+# Connection Configuration for Frontend and Backend
+
+## Frontend Environment Variables
+Location: `frontend/.env.local`
+
+Variables to update for Vercel deployment:
+- NEXT_PUBLIC_API_BASE_URL: This should point to your Railway backend URL
+  Example: `NEXT_PUBLIC_API_BASE_URL=https://your-app-name.onrender.com/api/v1` or `https://your-project-name.up.railway.app/api/v1`
+
+Current value in your project: NEXT_PUBLIC_API_BASE_URL=http://localhost:8000/api/v1
+
+## Backend Environment Variables
+Location: `backend/.env`
+
+Variables to update for Railway deployment:
+- DATABASE_URL: PostgreSQL database URL on Railway
+- SECRET_KEY: Your production secret key
+- OPENAI_API_KEY: Your OpenAI API key (if using AI features)
+- BETTER_AUTH_SECRET: Better Auth secret for production
+
+## URLs to Update for Deployment:
+
+### Frontend (Vercel):
+1. In `frontend/.env.local`:
+   - Change NEXT_PUBLIC_API_BASE_URL from `http://localhost:8000/api/v1` to your Railway backend URL
+   - Example: `NEXT_PUBLIC_API_BASE_URL=https://your-backend-name.up.railway.app/api/v1`
+
+### Backend (Railway):
+1. In `backend/.env`:
+   - DATABASE_URL should point to your Railway PostgreSQL database
+   - Ensure CORS settings in `backend/src/main.py` allow your Vercel frontend URL
+   - Example CORS origins: `https://your-frontend-name.vercel.app`
+
+## CORS Configuration
+In `backend/src/main.py`, the CORS settings currently allow:
+- http://localhost:3000
+- http://127.0.0.1:3000
+
+For production, you'll need to add:
+- Your Vercel frontend URL (e.g., https://your-app-name.vercel.app)
+
+## API Endpoint Format
+Frontend makes requests to: `{NEXT_PUBLIC_API_BASE_URL}/tasks/`, `/auth/`, `/chat/`, etc.
+Backend serves API routes at: `/api/v1/tasks/`, `/api/v1/auth/`, `/api/v1/chat/`, etc.
+
+## Deployment Steps:
+1. Deploy backend to Railway and get the backend URL
+2. Update NEXT_PUBLIC_API_BASE_URL in frontend with the Railway backend URL
+3. Deploy frontend to Vercel
+4. Add Vercel URL to backend's CORS allowed origins
+5. Ensure both deployments use HTTPS in production

@@ -1,0 +1,102 @@
+# Dependencies
+node_modules/
+
+# Environment variables
+.env*
+!.env.example
+
+# Next.js
+.next/
+out/
+build/
+
+# TypeScript
+*.tsbuildinfo
+*.log
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Directory for web tests
+.sass-cache/
+connect.lock
+coverage/
+*.lcov
+.nyc_output/
+
+# Coverage directory used by tools like istanbul
+coverage/
+
+# nyc test coverage
+.nyc_output/
+
+# Grunt intermediate storage (https://gruntjs.com/creating-plugins#storing-task-files)
+.grunt
+
+# Bower dependency directory (https://bower.io/)
+bower_components
+
+# node-waf configuration
+.lock-wscript
+
+# Compiled binary addons (https://nodejs.org/api/addons.html)
+build/Release
+
+# Dependency directories
+node-gyp
+.nodelet
+
+# Backup files
+*.bak
+*.swp
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+logs
+*.log
+
+# Debug files
+debug.log
+*.trace
+
+# Runtime errors
+error.log
+
+# IDE files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.settings/
+*.tmproj
+
+# Testing
+coverage/
+.nyc_output/
+junit.xml
+*.gcov
+*.lcov
+
+# Production builds
+dist/
+dist-*
+
+# Temporary files
+tmp/
+temp/
+
+# System files
+.DS_Store
+Thumbs.db
