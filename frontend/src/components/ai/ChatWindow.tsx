@@ -5,44 +5,33 @@ import { Bot, User, RefreshCw, ChevronRight, History, X, Sparkles, Command } fro
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import { useTaskStore } from "@/store/useTaskStore";
-
-// Ensure this path matches your project structure
+import { useChatStore } from "@/store/useChatStore"; // <--- IMPORT THE NEW STORE
 import { apiClient } from "@/lib/api-client";
 
-export interface ChatMessage {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
-  timestamp: string;
-}
-
-export interface Conversation {
-  id: string;
-  title: string;
-  created_at: string;
-  updated_at: string;
-}
+// Import types from store to avoid duplication
+import type { ChatMessage, Conversation } from "@/store/useChatStore";
 
 export default function ChatWindow({ onClose }: { onClose: () => void }) {
   const { user, fetchTasks } = useTaskStore();
+  // Use Global Store instead of local state
+  const { messages, conversationId, setMessages, setConversationId, resetChat, initializeChat } = useChatStore();
+  
   const activeUserId = user?.id || "11111111-1111-1111-1111-111111111111";
 
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
-  const [conversationId, setConversationId] = useState<string | null>(null);
-
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: "intro",
-      role: "assistant",
-      content: `Hi ${user?.fullName?.split(' ')[0] || "there"}, I’m Aurora. Ready to help you manage your tasks.`,
-    timestamp: new Date().toISOString(),
-    }
-  ]);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Initialize chat ONCE when component mounts (if empty)
+  useEffect(() => {
+    const firstName = user?.fullName?.split(' ')[0] || "there";
+    initializeChat(firstName);
+  }, [user, initializeChat]);
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -64,16 +53,9 @@ export default function ChatWindow({ onClose }: { onClose: () => void }) {
     }
   }, [input]);
 
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [loadingHistory, setLoadingHistory] = useState(false);
-
   const handleNewChat = () => {
-    setMessages([{
-      id: Date.now().toString(),
-      role: "assistant",
-      content: "Memory cleared. What is your next directive?",
-      timestamp: new Date().toISOString(),
-    }]);
+    resetChat(); // Resets global store
+    initializeChat(user?.fullName?.split(' ')[0] || "there");
     setConversationId(null);
     setShowHistory(false);
   };
@@ -157,7 +139,8 @@ export default function ChatWindow({ onClose }: { onClose: () => void }) {
         content: msg.content,
         timestamp: msg.timestamp
       }));
-      setMessages(conversationMessages);
+      // Update GLOBAL Store
+      setMessages(() => conversationMessages);
       setConversationId(convId);
       setShowHistory(false);
     } catch (error) {
