@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://phase-3-backend-openrouter-production.up.railway.app/api/v1';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://mrxhappy-todo-app-backend.hf.space/api/v1';
 
 // Define types locally to avoid import issues
 type AxiosInstance = any;
