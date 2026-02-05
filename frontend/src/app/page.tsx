@@ -37,10 +37,18 @@ const Icons = {
   )
 };
 
-// --- 2. Components ---
+// --- 2. Components (FIXED) ---
 
 const AuroraCard = ({ children, className = "" }: any) => (
-  <div className={`relative overflow-hidden bg-white/[0.02] backdrop-blur-2xl border border-white/[0.08] border-t-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] rounded-[24px] ${className}`}>
+  <div 
+    className={`relative overflow-hidden bg-white/[0.02] backdrop-blur-2xl border border-white/[0.08] border-t-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] rounded-[24px] ${className}`}
+    style={{
+      // FIX: Explicitly set Webkit prefix and force GPU layer
+      WebkitBackdropFilter: 'blur(40px)',
+      backdropFilter: 'blur(40px)',
+      transform: 'translateZ(0)' 
+    }}
+  >
     <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent pointer-events-none" />
     {children}
   </div>
@@ -113,7 +121,6 @@ export default function HomePage() {
               </p>
 
               <div>
-                {/* View Demo Removed */}
                 <Link href="/register" className="group bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-4 rounded-2xl font-bold text-sm transition-all shadow-[0_0_40px_-10px_rgba(79,70,229,0.5)] inline-flex items-center gap-2">
                   Start for free <Icons.ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Link>
@@ -170,7 +177,7 @@ export default function HomePage() {
                  </div>
                  <h3 className="text-2xl font-bold text-white mb-2">Lightning Fast</h3>
                  <p className="text-white/40">
-                    Engineered for speed. Tasks load instantly, interactions are fluid, and your data syncs in real-time across all your devices using our Neon DB infrastructure.
+                   Engineered for speed. Tasks load instantly, interactions are fluid, and your data syncs in real-time across all your devices using our Neon DB infrastructure.
                  </p>
               </AuroraCard>
 
@@ -181,7 +188,7 @@ export default function HomePage() {
                  </div>
                  <h3 className="text-xl font-bold text-white mb-2">Secure by Design</h3>
                  <p className="text-white/40 text-sm">
-                    Enterprise-grade encryption keeps your data safe.
+                   Enterprise-grade encryption keeps your data safe.
                  </p>
               </AuroraCard>
 
@@ -192,7 +199,7 @@ export default function HomePage() {
                  </div>
                  <h3 className="text-xl font-bold text-white mb-2">Smart Organization</h3>
                  <p className="text-white/40 text-sm">
-                    Tags, priority levels, and smart filters.
+                   Tags, priority levels, and smart filters.
                  </p>
               </AuroraCard>
 
@@ -203,7 +210,7 @@ export default function HomePage() {
                  </div>
                  <h3 className="text-2xl font-bold text-white mb-2">Productivity Analytics</h3>
                  <p className="text-white/40">
-                    Visualize your progress with beautiful charts. Track completion rates and see how you improve over time directly from your dashboard.
+                   Visualize your progress with beautiful charts. Track completion rates and see how you improve over time directly from your dashboard.
                  </p>
               </AuroraCard>
            </div>
