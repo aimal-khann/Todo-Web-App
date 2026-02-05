@@ -58,8 +58,33 @@
   }
 }
 
-/* Cyberpunk specific styles */
+/* --- UTILITIES & FIXES --- */
 @layer utilities {
+  
+  /* FIX: Manually enforce webkit-backdrop-filter for Tailwind classes.
+    This solves the issue where blurs disappear on Vercel/Safari.
+  */
+  .backdrop-blur-2xl {
+    -webkit-backdrop-filter: blur(40px);
+    backdrop-filter: blur(40px);
+  }
+
+  .backdrop-blur-xl {
+    -webkit-backdrop-filter: blur(24px);
+    backdrop-filter: blur(24px);
+  }
+
+  .backdrop-blur-lg {
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+  }
+
+  .backdrop-blur-md {
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+  }
+
+  /* Custom Glass Class */
   .glass {
     background: rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(12px);
@@ -72,6 +97,7 @@
     background: rgba(0, 0, 0, 0.1);
   }
 
+  /* Neon Glow Effects */
   .neon-glow {
     filter: drop-shadow(0 0 5px currentColor);
   }
